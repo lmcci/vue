@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script>
+  let code = `(function (root, factory) {
+    root.returnExports = factory(root);
+  }(this, function (root) {
+    console.log(root.msg)
+    console.log(root)
+    root.com = []
+    return {};
+  }));`;
+
+  let env = {msg: 'hello'}
+  let fn = new Function(code).bind(env)
+
+  fn()
+  console.log(env)
+
+</script>
+</body>
+</html>
