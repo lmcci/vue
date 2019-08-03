@@ -19,6 +19,7 @@ const unaryOperatorsRE = new RegExp('\\b' + (
 const stripStringRE = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*\$\{|\}(?:[^`\\]|\\.)*`|`(?:[^`\\]|\\.)*`/g
 
 // detect problematic expressions in a template
+// 检查ast的错误
 export function detectErrors (ast: ?ASTNode): Array<string> {
   const errors: Array<string> = []
   if (ast) {

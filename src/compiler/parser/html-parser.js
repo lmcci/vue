@@ -56,6 +56,7 @@ function decodeAttr (value, shouldDecodeNewlines) {
 }
 
 export function parseHTML (html, options) {
+  // 深度优先遍历 把未闭合的都放在栈中
   const stack = []
   const expectHTML = options.expectHTML
   const isUnaryTag = options.isUnaryTag || no
@@ -80,10 +81,10 @@ export function parseHTML (html, options) {
           if (commentEnd >= 0) {
             // 是否要保留注释节点
             if (options.shouldKeepComment) {
-              // 创建注释节点的ast
+              // 创建注释节点的ast 4包左不包右 '<--'
               options.comment(html.substring(4, commentEnd))
             }
-            // 向前移动 并修改html
+            // 向前移动 并修改html  3是'-->'的长度
             advance(commentEnd + 3)
             continue
           }
@@ -92,9 +93,11 @@ export function parseHTML (html, options) {
         // http://en.wikipedia.org/wiki/Conditional_comment#Downlevel-revealed_conditional_comment
         // <![if | IE]> 这类的注释
         if (conditionalComment.test(html)) {
+          // 找到结尾索引
           const conditionalEnd = html.indexOf(']>')
 
           // 匹配到结尾的时候 直接向前移动 什么都不做
+          // 这类东西不需要解析 是给ie浏览器识别的
           if (conditionalEnd >= 0) {
             advance(conditionalEnd + 2)
             continue
@@ -125,6 +128,8 @@ export function parseHTML (html, options) {
 
         // Start tag:
         // 匹配开始标签
+        // 当前是开始标签返回对象包含 tagName attrs start end unarySlash
+        // 不是开始标签 什么都不返回
         const startTagMatch = parseStartTag()
         if (startTagMatch) {
           // 处理开始标签
@@ -139,10 +144,13 @@ export function parseHTML (html, options) {
 
       // 处理文本
       let text, rest, next
+      // 当查找 html.indexOf('<') >= 0 的时候证明 最开始的不是< 开始标签和结束标签是一起处理的
+      // 就只有标签中的文本的情况了
       if (textEnd >= 0) {
+        // 下一个<开始到最后的文本
         rest = html.slice(textEnd)
-        // 非开始标签 非结束标签 非注释标签  非DOCTYPE
-        // 说明文本中有 <
+        // 有可能文本中有 < 所以要匹配下一个 结束标签 或者 开始标签 或者 注释 或者 DOCTYPE
+        // 结束标签 或者 开始标签 或者 注释 或者 DOCTYPE 的时候结束循环
         while (
           !endTag.test(rest) &&
           !startTagOpen.test(rest) &&
@@ -152,6 +160,7 @@ export function parseHTML (html, options) {
           // < in plain text, be forgiving and treat it as text
           // 找下一个 < 位置 然后截取
           next = rest.indexOf('<', 1)
+          // 剩余的没有<了 就不继续循环
           if (next < 0) break
           // 修正 textEnd
           textEnd += next
@@ -159,9 +168,11 @@ export function parseHTML (html, options) {
         }
         // 截取text 然后前进
         text = html.substring(0, textEnd)
+        // 前进跳过文本
         advance(textEnd)
       }
 
+      // 上面处理了 === 0    >= 0的情况
       // 如果剩余的html中没有 < 当文本节点处理
       if (textEnd < 0) {
         text = html
@@ -170,9 +181,11 @@ export function parseHTML (html, options) {
 
       // 创建文本的AST
       if (options.chars && text) {
+        // chars回调
         options.chars(text)
       }
     } else {
+      // script,style,textarea 这些的处理
       let endTagLength = 0
       const stackedTag = lastTag.toLowerCase()
       const reStackedTag = reCache[stackedTag] || (reCache[stackedTag] = new RegExp('([\\s\\S]*?)(</' + stackedTag + '[^>]*>)', 'i'))
@@ -210,19 +223,24 @@ export function parseHTML (html, options) {
   // Clean up any remaining tags
   parseEndTag()
 
+  // index相当于一个指针 标识当前处理到html字符串的哪个位置
+  // 修改索引 和 html删除
   function advance (n) {
     index += n
     html = html.substring(n)
   }
 
+  // 判断当前解析到的是不是开始标签
+  // 返回的是一个对象 有tagName attrs start end unarySlash
   function parseStartTag () {
     // 匹配开始标签  分组后start[1] 是标签名
     const start = html.match(startTagOpen)
+    // 匹配到了
     if (start) {
       const match = {
-        tagName: start[1],
-        attrs: [],
-        start: index
+        tagName: start[1],  // 标签名
+        attrs: [],          // 属性数组
+        start: index        // 当前索引也就是 标签开始索引
       }
       // 前进 过<标签名
       advance(start[0].length)
@@ -233,9 +251,10 @@ export function parseHTML (html, options) {
       while (!(end = html.match(startTagClose)) && (attr = html.match(attribute))) {
         // 前进
         advance(attr[0].length)
-        // 把匹配到的属性放在attrs 数组中
+        // 把匹配到的属性放在attrs 数组中 attr中是match的结果
         match.attrs.push(attr)
       }
+      //
       if (end) {
         // 如果自闭标签 会有这个值
         match.unarySlash = end[1]
@@ -248,6 +267,8 @@ export function parseHTML (html, options) {
     }
   }
 
+  // 处理开始标签
+  // match 是一个对象 有tagName attrs start end unarySlash
   function handleStartTag (match) {
     const tagName = match.tagName
     const unarySlash = match.unarySlash
@@ -266,8 +287,11 @@ export function parseHTML (html, options) {
     }
 
     // 是否是自闭合标签
+    // 没有写 /> 的话 自闭和标签可以写 <br> 通过标签名判断
     const unary = isUnaryTag(tagName) || !!unarySlash
 
+    // 遍历属性列表
+    // 把正则匹配的结果转换成键值对
     const l = match.attrs.length
     const attrs = new Array(l)
 
@@ -280,18 +304,21 @@ export function parseHTML (html, options) {
         if (args[4] === '') { delete args[4] }
         if (args[5] === '') { delete args[5] }
       }
+      // 3 4 5 分组是属性值
       const value = args[3] || args[4] || args[5] || ''
+      // 转义
       const shouldDecodeNewlines = tagName === 'a' && args[1] === 'href'
         ? options.shouldDecodeNewlinesForHref
         : options.shouldDecodeNewlines
       attrs[i] = {
-        name: args[1],
-        value: decodeAttr(value, shouldDecodeNewlines)
+        name: args[1], // 属性名
+        value: decodeAttr(value, shouldDecodeNewlines)  // 解码转义
       }
     }
 
     if (!unary) {
       // 不是自闭标签 要放在栈中 等待匹配结束标签
+      // lowerCasedTag也转小写存入 出栈的时候 通过这个找的
       stack.push({ tag: tagName, lowerCasedTag: tagName.toLowerCase(), attrs: attrs })
       // 记录本次的标签名
       lastTag = tagName
@@ -299,6 +326,7 @@ export function parseHTML (html, options) {
 
     // 创建ast
     if (options.start) {
+      // start是回调
       options.start(tagName, attrs, unary, match.start, match.end)
     }
   }
@@ -306,6 +334,7 @@ export function parseHTML (html, options) {
   // 解析结束标签
   function parseEndTag (tagName, start, end) {
     let pos, lowerCasedTagName
+    // 最开始传入的时候 start结束标签开始索引 和 end结束标签结束索引
     if (start == null) start = index
     if (end == null) end = index
 
@@ -329,18 +358,21 @@ export function parseHTML (html, options) {
 
     if (pos >= 0) {
       // Close all the open elements, up the stack
+      // 上面只是找到对应开始标签的索引 没有对栈操作
+      // 这里从栈顶开始到上面找到的索引位置遍历
       for (let i = stack.length - 1; i >= pos; i--) {
+        // 如果栈顶那一个不是匹配到的 就报警告 没有匹配到标签
         if (process.env.NODE_ENV !== 'production' &&
           (i > pos || !tagName) &&
           options.warn
         ) {
-          // 如果栈顶那一个不是匹配到的 就报警告 没有匹配到标签
           options.warn(
             `tag <${stack[i].tag}> has no matching end tag.`
           )
         }
         // 生成ast
         if (options.end) {
+          // end是传入的回调
           options.end(stack[i].tag, start, end)
         }
       }

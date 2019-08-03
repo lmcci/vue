@@ -80,6 +80,7 @@ Vue.prototype.$mount = function (
       }
 
       // 调用compileToFunctions编译 把template编译成render函数
+      // 编译的入口
       const { render, staticRenderFns } = compileToFunctions(template, {
         shouldDecodeNewlines,
         shouldDecodeNewlinesForHref,

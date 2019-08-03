@@ -46,7 +46,7 @@ type Attr = { name: string; value: string };
 export function createASTElement (
   tag: string,  // 标签名
   attrs: Array<Attr>,  // 属性数组
-  parent: ASTElement | void  // 父节点
+  parent: ASTElement | void  // 父节点 ast
 ): ASTElement {
   return {
     type: 1,  // 1标示普通元素的ast节点
@@ -66,6 +66,7 @@ export function parse (
   options: CompilerOptions
 ): ASTElement | void {
   // 解析配置
+  // 优先取options中的  没有就使用默认的
   warn = options.warn || baseWarn
 
   platformIsPreTag = options.isPreTag || no
@@ -86,6 +87,7 @@ export function parse (
   let inPre = false
   let warned = false
 
+  // 调用多次 会控制只调用一次warn
   function warnOnce (msg) {
     if (!warned) {
       warned = true
@@ -122,6 +124,7 @@ export function parse (
     start (tag, attrs, unary) {
       // check namespace.
       // inherit parent ns if there is one
+      // 第一次进入的时候 根节点没有parent
       // 树状结构 当前节点只有一个父节点 currentParent
       // ns命名空间
       const ns = (currentParent && currentParent.ns) || platformGetTagNamespace(tag)
@@ -156,6 +159,7 @@ export function parse (
       }
 
       // 丰富ast对象 根据不同的属性 往ast上添加
+      // v-pre
       if (!inVPre) {
         processPre(element)
         if (element.pre) {
