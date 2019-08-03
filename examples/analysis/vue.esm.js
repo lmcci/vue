@@ -10863,6 +10863,7 @@ var createCompiler = createCompilerCreator(function baseCompile (
   options
 ) {
   var ast = parse(template.trim(), options);
+  console.log(ast)
   if (options.optimize !== false) {
     optimize(ast, options);
   }
