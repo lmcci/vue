@@ -2,19 +2,29 @@
 
 const validDivisionCharRE = /[\w).+\-_$\]]/
 
+
+// 处理vue的过滤器 filter
+// a | b   相当于 b(a) 的返回值
 export function parseFilters (exp: string): string {
+  // 单引号中
   let inSingle = false
+  // 双引号中
   let inDouble = false
+  // es6模板字符串中
   let inTemplateString = false
+  // 在正则中
   let inRegex = false
+
   let curly = 0
   let square = 0
   let paren = 0
   let lastFilterIndex = 0
   let c, prev, i, expression, filters
 
+  // 按字符遍历这个表达式
   for (i = 0; i < exp.length; i++) {
     prev = c
+    // 通过16进制判断 被什么包裹
     c = exp.charCodeAt(i)
     if (inSingle) {
       if (c === 0x27 && prev !== 0x5C) inSingle = false
@@ -84,6 +94,7 @@ export function parseFilters (exp: string): string {
   return expression
 }
 
+// 拼接字符串 返回一个函数调用
 function wrapFilter (exp: string, filter: string): string {
   const i = filter.indexOf('(')
   if (i < 0) {
