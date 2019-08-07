@@ -235,6 +235,7 @@ export function mountComponent (
   new Watcher(vm, updateComponent, noop, {
     before () {
       // 每次调用watcher.before()都会调用组件的beforeUpdate生命周期
+      // 已经执行过mounted再更新节点才走beforeUpdate生命周期
       if (vm._isMounted) {
         callHook(vm, 'beforeUpdate')
       }
@@ -246,6 +247,7 @@ export function mountComponent (
   // mounted is called for render-created child components in its inserted hook
   // 父vnode为空 说明当前节点是一个根节点的时候 执行挂载方法
   if (vm.$vnode == null) {
+    // 放一个标记
     vm._isMounted = true
     // 调用mounted生命周期方法
     callHook(vm, 'mounted')

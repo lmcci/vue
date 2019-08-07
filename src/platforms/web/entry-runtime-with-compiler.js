@@ -70,7 +70,7 @@ Vue.prototype.$mount = function (
       // 没有template的时候 根据el得到outerHTML 就是el本身的字符串
       template = getOuterHTML(el)
     }
-    // template 是字符串 最终转换成render函数放在options上
+    // template 是dom字符串 最终转换成render函数放在options上
     if (template) {
       /* istanbul ignore if */
       // 性能埋点

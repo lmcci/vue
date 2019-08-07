@@ -810,6 +810,7 @@ export function createPatchFunction (backend) {
     }
   }
 
+  // __patch__ 就是执行这里
   // 实际返回值 是一个function
   // 在初始化的时候 执行update传入的oldVnode是一个真实dom vnode是一个虚拟dom节点
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
@@ -876,7 +877,7 @@ export function createPatchFunction (backend) {
         const parentElm = nodeOps.parentNode(oldElm)
 
         // create new node
-        // 创建一个新的节点
+        // 创建一个真实dom 新的节点 挂载再parentElm上
         createElm(
           vnode,
           insertedVnodeQueue,

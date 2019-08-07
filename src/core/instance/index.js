@@ -13,10 +13,12 @@ function Vue (options) {
     warn('Vue is a constructor and should be called with the `new` keyword')
   }
   // 调用原型上的_init方法
+  // 初始化的时候就initMixin已经挂载上去了 只是new Vue(opt)的时候才调用
   this._init(options)
 }
 
 // 往原型链上挂载方法
+// 实例方法 vm.xxx
 initMixin(Vue)
 stateMixin(Vue)
 eventsMixin(Vue)

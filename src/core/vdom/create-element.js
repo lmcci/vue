@@ -70,7 +70,7 @@ export function _createElement (
     // 把is的值赋给 tag 标签名
     tag = data.is
   }
-  // 如果data.is为空 什么都不渲染 返回一个空节点
+  // 如果标签名 什么都不渲染 返回一个空节点
   if (!tag) {
     // in case of component :is set to falsy value
     // 翻译： is被设置了一个假值
@@ -116,7 +116,7 @@ export function _createElement (
     let Ctor
     // 命名空间
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
-    // 如果是html/svg标签
+    // 如果是html/svg标签 已知的标签
     if (config.isReservedTag(tag)) {
       // 创建一个vnode 把所有子节点传入
       // platform built-in elements
