@@ -18,6 +18,9 @@ import {
   getAndRemoveAttr,
   pluckModuleFunction
 } from '../helpers'
+import klass from "../../platforms/web/compiler/modules/class";
+import style from "../../platforms/web/compiler/modules/style";
+import model from "../../platforms/web/compiler/modules/model";
 
 export const onRE = /^@|^v-on:/
 export const dirRE = /^v-|^@|^:/
@@ -74,6 +77,7 @@ export function parse (
   platformMustUseProp = options.mustUseProp || no
   platformGetTagNamespace = options.getTagNamespace || no
 
+  // klass, style, model 中定义的这些个方法
   transforms = pluckModuleFunction(options.modules, 'transformNode')
   preTransforms = pluckModuleFunction(options.modules, 'preTransformNode')
   postTransforms = pluckModuleFunction(options.modules, 'postTransformNode')
@@ -189,7 +193,7 @@ export function parse (
         processOnce(element)
         // element-scope stuff
 
-        // 处理 key ref click 等
+        // 除了上面处理过的 剩余其他属性的处理 key ref click 等
         processElement(element, options)
       }
 

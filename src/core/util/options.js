@@ -273,7 +273,7 @@ function checkComponents (options: Object) {
 
 // 校验 组件名称
 export function validateComponentName (name: string) {
-  // 以大小写字母开头 -或者单词字符 A-Za-z0-9_
+  // 以大小写字母开头 -或者单词字符 A-Za-z0-9_ 组成的  不是这样就报错
   if (!/^[a-zA-Z][\w-]*$/.test(name)) {
     warn(
       'Invalid component name: "' + name + '". Component names ' +
@@ -415,9 +415,13 @@ export function mergeOptions (
   }
   const options = {}
   let key
+  // 遍历parent 把所有的键 根据策略合并父子都放在options上
+  // 这里的key 就是 data props methods watch mounted等等
   for (key in parent) {
     mergeField(key)
   }
+  // 上面已经合并过父
+  // 这里合并子上有 父上没有的键
   for (key in child) {
     if (!hasOwn(parent, key)) {
       mergeField(key)

@@ -12,6 +12,7 @@ import { bindObjectListeners } from './bind-object-listeners'
 import { resolveScopedSlots } from './resolve-slots'
 
 // 编译 生成代码 的时候 对应的每个具体方法
+// todo mark
 export function installRenderHelpers (target: any) {
   target._o = markOnce
   target._n = toNumber

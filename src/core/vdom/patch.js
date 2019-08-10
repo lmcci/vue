@@ -78,6 +78,9 @@ export function createPatchFunction (backend) {
   let i, j
   const cbs = {}
 
+  // 上面这里相当于一些初始化逻辑，当调用这个函数的时候执行，
+  // 但是也返回一个函数，返回的函数执行的时候（__patch__）才执行下面定义的
+
   // modules就是各个模块  baseModules、platformModules的合并
   // nodeOps是平台相关操作dom的api
   const { modules, nodeOps } = backend
@@ -208,6 +211,13 @@ export function createPatchFunction (backend) {
         }
       }
 
+
+      // 先创建父节点 再创建子节点，先挂载子节点 再挂载父节点
+
+      // 创建
+      // 遍历子节点 递归调用本函数
+      // 插入
+
       // 创建一个真实dom 最外层的
       // 判断vnode有没有命名空间 有命名空间创建带命名空间的节点 没有命名空间创建普通节点
       vnode.elm = vnode.ns
@@ -280,7 +290,7 @@ export function createPatchFunction (backend) {
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
       if (isDef(vnode.componentInstance)) {
-        // 真正的插入操作
+        // 子组件 真正的插入操作
         initComponent(vnode, insertedVnodeQueue)
         insert(parentElm, vnode.elm, refElm)
         if (isTrue(isReactivated)) {
@@ -878,6 +888,7 @@ export function createPatchFunction (backend) {
 
         // create new node
         // 创建一个真实dom 新的节点 挂载再parentElm上
+        // 根据父节点 递归所有的子节点 然后全部插入
         createElm(
           vnode,
           insertedVnodeQueue,
@@ -925,6 +936,7 @@ export function createPatchFunction (backend) {
           // 如果真实dom有父元素 就通过父元素把旧节点删除
           removeVnodes(parentElm, [oldVnode], 0, 0)
         } else if (isDef(oldVnode.tag)) {
+          // 旧节点调用销毁
           invokeDestroyHook(oldVnode)
         }
       }
@@ -933,6 +945,8 @@ export function createPatchFunction (backend) {
     // 调用生命周期
     // insertedVnodeQueue 在patch过程中vnode被不断的添加进去 子在前父在后
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
+
+    // 返回的是最外层真实dom的引用
     return vnode.elm
   }
 }

@@ -137,6 +137,7 @@ export function renderMixin (Vue: Class<Component>) {
     }
     // set parent
     // 设置vnode的父子关系  _parentVnode是占位符vnode
+    // 子组件中调用render生成的vnode
     vnode.parent = _parentVnode
     return vnode
   }

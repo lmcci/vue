@@ -56,7 +56,7 @@ export function parseText (
     tokens.push(JSON.stringify(tokenValue))
   }
   return {
-    expression: tokens.join('+'),
-    tokens: rawTokens
+    expression: tokens.join('+'),   // 匹配到{{abc}} 拼成字符串 _s(abc)  其他都是原样的字符串  最终用+拼接好的字符串
+    tokens: rawTokens // 匹配到{{abc}} 的就放{'@binding': 'abc'} 其他的是原样的字符串  最终都放在这个数组中
   }
 }

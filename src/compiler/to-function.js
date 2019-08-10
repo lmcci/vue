@@ -31,7 +31,6 @@ export function createCompileToFunctionFn (compile: Function): Function {
     // 这个方法只是辅助，把编译生成的字符串通过new Function的方式生成一个函数 输出一些错误警告
     // 真正执行编译的是传入的compile函数
 
-
     // 拷贝options
     options = extend({}, options)
     // 配置的警告  如果没有指定一个默认

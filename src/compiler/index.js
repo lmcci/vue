@@ -20,11 +20,12 @@ export const createCompiler = createCompilerCreator(function baseCompile (
   const ast = parse(template.trim(), options)
   // ast优化
   // 区分静态的和动态数据驱动的节点
+  // 在没有需要实时变化的地方 就标记出来 patch的时候直接跳过了
   if (options.optimize !== false) {
     optimize(ast, options)
   }
   // 由ast生成code
-  // 把ast对象转成代码
+  // 把ast对象转成代码  要被转换成render函数
   const code = generate(ast, options)
   return {
     ast,

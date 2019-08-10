@@ -81,7 +81,7 @@ export function parseHTML (html, options) {
           if (commentEnd >= 0) {
             // 是否要保留注释节点
             if (options.shouldKeepComment) {
-              // 创建注释节点的ast 4包左不包右 '<--'
+              // 回调 创建注释节点的ast 4包左不包右 '<--'
               options.comment(html.substring(4, commentEnd))
             }
             // 向前移动 并修改html  3是'-->'的长度
@@ -277,11 +277,15 @@ export function parseHTML (html, options) {
       // 所有能放在P标签内的元素 就是Phrasing元素
 
       // 如果p标签内有 非Phrasing元素  就结束P标签 相当于添加了</p>
+      // 所有可以放在p标签内的元素都是Phrasing元素
       if (lastTag === 'p' && isNonPhrasingTag(tagName)) {
+        // 直接结束p标签  改成并列的
         parseEndTag(lastTag)
       }
       // 可以只有开始标签没有结束标签的时候 就直接调用结束
+      // 比如 p标签嵌套的情况
       if (canBeLeftOpenTag(tagName) && lastTag === tagName) {
+        // 直接把标签闭合了
         parseEndTag(tagName)
       }
     }
@@ -383,7 +387,7 @@ export function parseHTML (html, options) {
       // 记录上次处理的标签名
       lastTag = pos && stack[pos - 1].tag
     } else if (lowerCasedTagName === 'br') {
-      // </br> 处理
+      // 最后一个是</br> 而不是<br/> 处理
       if (options.start) {
         options.start(tagName, [], true, start, end)
       }

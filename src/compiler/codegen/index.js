@@ -49,7 +49,9 @@ export function generate (
   // 调用genElement 生成代码
   const code = ast ? genElement(ast, state) : '_c("div")'
   return {
+    // 拼接code
     render: `with(this){return ${code}}`,
+    // static root
     staticRenderFns: state.staticRenderFns
   }
 }

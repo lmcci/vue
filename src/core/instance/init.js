@@ -41,7 +41,7 @@ export function initMixin (Vue: Class<Component>) {
     // merge options
     // 通过new Vue(options) 传入的option合并 最终挂载在this.$options上
     if (options && options._isComponent) {
-      // 如果是组件的实例化 合并options
+      // 如果是子组件的实例化 合并options
       // 组件实例化vm的时候options会传入{_isComponent: true, _parentVnode: vnode, parent}
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
@@ -50,7 +50,7 @@ export function initMixin (Vue: Class<Component>) {
     } else {
       // 把传入的option 合并放到$options上
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor), // new Vue(options) 的时候返回的是Vue.options
+        resolveConstructorOptions(vm.constructor), // 传入的是Vue 返回的是Vue.options
         options || {},
         vm
       )
@@ -103,12 +103,13 @@ export function initInternalComponent (vm: Component, options: InternalComponent
   // 创建一个原始的options 根据Vue的options和组件定义的options合并
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.
-  // _parentVnode 就是父占位符vnode
+  // _parentVnode 就是父组建中的占位符vnode
   const parentVnode = options._parentVnode
   opts.parent = options.parent // 当前要创建子组件vm的父级vm实例
   opts._parentVnode = parentVnode
 
   // 合并一些其他属性
+  // vnodeComponentOptions 就是这些 { Ctor, propsData, listeners, tag, children }
   const vnodeComponentOptions = parentVnode.componentOptions
   opts.propsData = vnodeComponentOptions.propsData
   opts._parentListeners = vnodeComponentOptions.listeners

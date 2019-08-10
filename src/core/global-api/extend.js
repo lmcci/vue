@@ -24,6 +24,7 @@ export function initExtend (Vue: GlobalAPI) {
     const SuperId = Super.cid
 
     // 第一次给传入的option加入一个空对象 然后缓存  第二次直接取缓存
+    // 缓存是放在传入的extendOptions中的
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
 
     // 如果对象有缓存 就直接返回
@@ -31,7 +32,7 @@ export function initExtend (Vue: GlobalAPI) {
       return cachedCtors[SuperId]
     }
 
-    // 传入的option中的name然后校验 若没传就用父组件的
+    // 传入的option中的name然后校验 若没传就用Vue的
     const name = extendOptions.name || Super.options.name
     if (process.env.NODE_ENV !== 'production' && name) {
       validateComponentName(name)
@@ -44,6 +45,7 @@ export function initExtend (Vue: GlobalAPI) {
     // 修改原型指向 把原型指向Super就是Vue
     Sub.prototype = Object.create(Super.prototype)
     Sub.prototype.constructor = Sub
+    // cid递增 给了Sub而不是Vue 和SuperId无关
     Sub.cid = cid++
     // 合并传入的option和Vue的option
     Sub.options = mergeOptions(
@@ -88,7 +90,7 @@ export function initExtend (Vue: GlobalAPI) {
     Sub.sealedOptions = extend({}, Sub.options)
 
     // cache constructor
-    // 缓存
+    // 缓存构造函数
     cachedCtors[SuperId] = Sub
     return Sub
   }

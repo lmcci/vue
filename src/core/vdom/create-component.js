@@ -45,7 +45,8 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
-      // 返回了子组件vm的实例 挂载在
+      // 返回了子组件vm的实例 给vnode下加一个引用
+      // vnode占位符vnode
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance
@@ -110,7 +111,7 @@ const componentVNodeHooks = {
 // 获取生命周期的key 是 ['init', 'prepatch', 'insert', 'destroy']
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
-// 创建一个组件占位符vnode
+// 创建一个组件占位符vnode 就是在父组件里面声明的<child></child> 对应的vnode
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -210,6 +211,7 @@ export function createComponent (
 
   // install component management hooks onto the placeholder node
   // 给要创建的组件vnodeData  添加hook函数 添加到组件hook上
+  // 在patch过程中执行不同的生命周期
   installComponentHooks(data)
 
   // return a placeholder vnode
@@ -240,9 +242,9 @@ export function createComponent (
 
 // 创建组件vnode
 export function createComponentInstanceForVnode (
-  // 传入的vnode
+  // 传入的vnode 占位符
   vnode: any, // we know it's MountedComponentVNode but flow doesn't
-  // 实际上是vm的实例
+  // 实际上是当前vm的实例  作为子组件的父
   parent: any, // activeInstance in lifecycle state
 ): Component {
   // 构造options

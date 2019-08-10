@@ -72,6 +72,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     if (!prevVnode) {
       // initial render
       // 初始化的时候调用  第一次渲染传入的第一个参数是真实dome  第二个是vnode
+      // vm.$el传入的是老dom节点  返回的是创建完成的dom节点
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
     } else {
       // updates
