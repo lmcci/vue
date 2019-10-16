@@ -54,9 +54,11 @@ class StringNode {
     children?: Array<any>,
     normalizationType?: number
   ) {
+    // 初始化数据
     this.isString = true
     this.open = open
     this.close = close
+    // 有子节点 根据序列化方式 拍平
     if (children) {
       this.children = normalizationType === 1
         ? simpleNormalizeChildren(children)
@@ -75,6 +77,7 @@ function renderStringNode (
   children?: Array<any>,
   normalizationType?: number
 ): StringNode {
+  // 直接创建一个对象返回
   return new StringNode(open, close, children, normalizationType)
 }
 
@@ -88,15 +91,18 @@ function renderStringList (
 ): string {
   let ret = ''
   let i, l, keys, key
+  // 是数组或者字符串 就遍历元素 调用render结果拼在ret上
   if (Array.isArray(val) || typeof val === 'string') {
     for (i = 0, l = val.length; i < l; i++) {
       ret += render(val[i], i)
     }
   } else if (typeof val === 'number') {
+    // 是个数字 从0开始遍历 结果拼在ret上
     for (i = 0; i < val; i++) {
       ret += render(i + 1, i)
     }
   } else if (isObject(val)) {
+    // 对象遍历 结果拼在ret上
     keys = Object.keys(val)
     for (i = 0, l = keys.length; i < l; i++) {
       key = keys[i]
@@ -106,6 +112,7 @@ function renderStringList (
   return ret
 }
 
+// 遍历对象 所有元素调用renderAttr 结果拼在res上
 function renderAttrs (obj: Object): string {
   let res = ''
   for (const key in obj) {
@@ -114,6 +121,7 @@ function renderAttrs (obj: Object): string {
   return res
 }
 
+// 逐个调用 结果拼好返回
 function renderDOMProps (obj: Object): string {
   let res = ''
   for (const key in obj) {
@@ -125,6 +133,7 @@ function renderDOMProps (obj: Object): string {
   return res
 }
 
+// 渲染类名
 function renderSSRClass (
   staticClass: ?string,
   dynamic: any
@@ -133,6 +142,7 @@ function renderSSRClass (
   return res === '' ? res : ` class="${escape(res)}"`
 }
 
+// 渲染样式
 function renderSSRStyle (
   staticStyle: ?Object,
   dynamic: any,
