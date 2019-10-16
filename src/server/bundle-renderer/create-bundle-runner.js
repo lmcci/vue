@@ -5,7 +5,9 @@ const path = require('path')
 const resolve = require('resolve')
 const NativeModule = require('module')
 
+// 创建一个沙盒
 function createSandbox (context) {
+  // 一个对象里面都是全局的方法  还有一个context
   const sandbox = {
     Buffer,
     console,
@@ -18,48 +20,61 @@ function createSandbox (context) {
     clearImmediate,
     __VUE_SSR_CONTEXT__: context
   }
+  // 重复引用
   sandbox.global = sandbox
   return sandbox
 }
 
+// 编译模块
 function compileModule (files, basedir, runInNewContext) {
   const compiledScripts = {}
   const resolvedModules = {}
 
   function getCompiledScript (filename) {
+    // 先从编译的脚本对象中取 有就直接返回
     if (compiledScripts[filename]) {
       return compiledScripts[filename]
     }
+    // 从文件列表中取得源代码
     const code = files[filename]
+    // 把代码转换成一个模块 运行？
     const wrapper = NativeModule.wrap(code)
     const script = new vm.Script(wrapper, {
       filename,
       displayErrors: true
     })
+    // 添加到对象中 缓存
     compiledScripts[filename] = script
     return script
   }
 
   function evaluateModule (filename, sandbox, evaluatedFiles = {}) {
+    // 从入参中取 有就直接返回
     if (evaluatedFiles[filename]) {
       return evaluatedFiles[filename]
     }
 
+    // 通过文件名获取脚本
     const script = getCompiledScript(filename)
+    // 执行的上下文
     const compiledWrapper = runInNewContext === false
       ? script.runInThisContext()
       : script.runInNewContext(sandbox)
     const m = { exports: {}}
     const r = file => {
+      // 转换成相对路径
       file = path.posix.join('.', file)
+      // 从文件列表中取，如果有就递归
       if (files[file]) {
         return evaluateModule(file, sandbox, evaluatedFiles)
       } else if (basedir) {
+        // require 依赖模块
         return require(
           resolvedModules[file] ||
           (resolvedModules[file] = resolve.sync(file, { basedir }))
         )
       } else {
+        // require 依赖模块
         return require(file)
       }
     }
@@ -71,9 +86,11 @@ function compileModule (files, basedir, runInNewContext) {
     evaluatedFiles[filename] = res
     return res
   }
+  // 返回上面声明的函数
   return evaluateModule
 }
 
+// 深拷贝一个对象
 function deepClone (val) {
   if (isPlainObject(val)) {
     const res = {}

@@ -9,6 +9,7 @@ const fs = require('fs')
 const path = require('path')
 const PassThrough = require('stream').PassThrough
 
+// 验证错误要输出的信息
 const INVALID_MSG =
   'Invalid server-rendering bundle format. Should be a string ' +
   'or a bundle Object of type:\n\n' +
@@ -28,9 +29,12 @@ type RenderBundle = {
   modules?: { [filename: string]: Array<string> };
 };
 
+// 调用创建者返回一个函数
 export function createBundleRendererCreator (
   createRenderer: (options?: RenderOptions) => Renderer
 ) {
+  // 调用返回的函数
+  // 返回一个对象 {renderToString, renderToStream}
   return function createBundleRenderer (
     bundle: string | RenderBundle,
     rendererOptions?: RenderOptions = {}
@@ -39,15 +43,21 @@ export function createBundleRendererCreator (
     let basedir = rendererOptions.basedir
 
     // load bundle if given filepath
+    // bundle要是个string类型的路径 并且以.js .json结尾
     if (
       typeof bundle === 'string' &&
       /\.js(on)?$/.test(bundle) &&
       path.isAbsolute(bundle)
     ) {
+      // 判断是否存在
       if (fs.existsSync(bundle)) {
+        // 是否是json文件
         const isJSON = /\.json$/.test(bundle)
+        // 没有配置 就获取bundle的目录地址
         basedir = basedir || path.dirname(bundle)
+        // 读文件
         bundle = fs.readFileSync(bundle, 'utf-8')
+        // 读取之后转换成对象
         if (isJSON) {
           try {
             bundle = JSON.parse(bundle)
@@ -60,7 +70,9 @@ export function createBundleRendererCreator (
       }
     }
 
+    // 上面已经转化成对象了
     if (typeof bundle === 'object') {
+      // 从bundle中获得对应的信息
       entry = bundle.entry
       files = bundle.files
       basedir = basedir || bundle.basedir
@@ -69,6 +81,7 @@ export function createBundleRendererCreator (
         throw new Error(INVALID_MSG)
       }
     } else if (typeof bundle === 'string') {
+      // 其他情况 初始化一些数据
       entry = '__vue_ssr_bundle__'
       files = { '__vue_ssr_bundle__': bundle }
       maps = {}
@@ -76,8 +89,10 @@ export function createBundleRendererCreator (
       throw new Error(INVALID_MSG)
     }
 
+    // 执行真正的渲染
     const renderer = createRenderer(rendererOptions)
 
+    // 创建一个runner
     const run = createBundleRunner(
       entry,
       files,
@@ -85,23 +100,31 @@ export function createBundleRendererCreator (
       rendererOptions.runInNewContext
     )
 
+    // 返回一个对象 {renderToString, renderToStream}
     return {
       renderToString: (context?: Object, cb: any) => {
+        // 怎么tm又一遍？
+        // 参数位置
         if (typeof context === 'function') {
           cb = context
           context = {}
         }
 
+        // 不传cb 就用promise（执行cb的时候返回的promise会resolve）
         let promise
         if (!cb) {
           ({ promise, cb } = createPromiseCallback())
         }
 
+        // 执行runner
         run(context).catch(err => {
+          // 有错误就输出错误执行回调
           rewriteErrorTrace(err, maps)
           cb(err)
         }).then(app => {
+          // 有结果
           if (app) {
+            // 渲染成字符串执行回调
             renderer.renderToString(app, context, (err, res) => {
               rewriteErrorTrace(err, maps)
               cb(err, res)
@@ -114,23 +137,29 @@ export function createBundleRendererCreator (
 
       renderToStream: (context?: Object) => {
         const res = new PassThrough()
+        // 执行runner
         run(context).catch(err => {
+          // 有错误打印错误
           rewriteErrorTrace(err, maps)
           // avoid emitting synchronously before user can
           // attach error listener
           process.nextTick(() => {
+            // 向webpack提交错误
             res.emit('error', err)
           })
         }).then(app => {
           if (app) {
+            // 渲染成流
             const renderStream = renderer.renderToStream(app, context)
 
+            // 错误回调
             renderStream.on('error', err => {
               rewriteErrorTrace(err, maps)
               res.emit('error', err)
             })
 
             // relay HTMLStream special events
+            // 各种回调
             if (rendererOptions && rendererOptions.template) {
               renderStream.on('beforeStart', () => {
                 res.emit('beforeStart')
