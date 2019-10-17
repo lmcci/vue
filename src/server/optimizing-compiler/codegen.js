@@ -59,6 +59,7 @@ function genSSRElement (el: ASTElement, state: CodegenState): string {
       : genSSRChildren(el, state) || 'void 0'
   }
 
+  // 根据优化的程度 选择不同的生成方式
   switch (el.ssrOptimizability) {
     case optimizability.FULL:
       // stringify whole tree
