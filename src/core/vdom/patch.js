@@ -729,6 +729,7 @@ export function createPatchFunction (backend) {
       //
       if (isDef(i = vnode.componentInstance)) {
         // child component. it should have hydrated its own tree.
+        // vnode是一个组件vnode
         initComponent(vnode, insertedVnodeQueue)
         return true
       }
@@ -736,12 +737,16 @@ export function createPatchFunction (backend) {
     // vnode.tag有定义
     if (isDef(tag)) {
       if (isDef(children)) {
+        // vnode有子元素  有标签名
         // empty element, allow client to pick up and populate children
         if (!elm.hasChildNodes()) {
+          // 如果真实dom没有子节点  vnode有子节点 就创建
           createChildren(vnode, children, insertedVnodeQueue)
         } else {
           // v-html and domProps: innerHTML
           if (isDef(i = data) && isDef(i = i.domProps) && isDef(i = i.innerHTML)) {
+            // data.domProps.innerHTML 存在
+            // vnode的innerHTML 和 真实元素的 innerHTML不相同
             if (i !== elm.innerHTML) {
               /* istanbul ignore if */
               if (process.env.NODE_ENV !== 'production' &&
@@ -757,17 +762,23 @@ export function createPatchFunction (backend) {
             }
           } else {
             // iterate and compare children lists
+            // 一个标记看子节点 是否全部匹配 有一个不匹配的就置为false
             let childrenMatch = true
+            // 取真实dom的第一个子元素
             let childNode = elm.firstChild
             for (let i = 0; i < children.length; i++) {
+              // 递归遍历 有一个不相同的就把标记设置为false
               if (!childNode || !hydrate(childNode, children[i], insertedVnodeQueue, inVPre)) {
                 childrenMatch = false
                 break
               }
+              // 真实dom的下一个兄弟元素 和 下一个vnode的children进行比较
               childNode = childNode.nextSibling
             }
             // if childNode is not null, it means the actual childNodes list is
             // longer than the virtual children list.
+            // vnode的children已经遍历完成了 真实dom还有节点
+            // 或者 上面遍历过程中有不匹配的 就返回false
             if (!childrenMatch || childNode) {
               /* istanbul ignore if */
               if (process.env.NODE_ENV !== 'production' &&
@@ -785,7 +796,9 @@ export function createPatchFunction (backend) {
       }
       if (isDef(data)) {
         let fullInvoke = false
+        // 遍历所有的vnode data  然后判断符合条件的执行create更新属性 监听 类名样式等等
         for (const key in data) {
+          // 键只要有一个不是attrs,class,staticClass,staticStyle,key中的
           if (!isRenderedModule(key)) {
             fullInvoke = true
             invokeCreateHooks(vnode, insertedVnodeQueue)
