@@ -33,10 +33,13 @@ export function installSSRHelpers (vm: Component) {
     return
   }
   let Vue = vm.constructor
+  // 最外层的Vue构造函数
   while (Vue.super) {
     Vue = Vue.super
   }
+  // 扩展ssrHelpers
   extend(Vue.prototype, ssrHelpers)
+  // FunctionalRenderContext 有就扩展
   if (Vue.FunctionalRenderContext) {
     extend(Vue.FunctionalRenderContext.prototype, ssrHelpers)
   }
